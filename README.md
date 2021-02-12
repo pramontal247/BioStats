@@ -2,4 +2,3 @@
 
 Will patients who get treatment lose more weight over time than patients who do not get treatment ?
 
-[alt text](http://url/to/image1.png)
