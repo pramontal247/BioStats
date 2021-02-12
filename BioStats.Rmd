@@ -1,0 +1,180 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(corrplot)
+library(MASS)
+library(caret)
+library(caTools)
+library(rpart)
+library(rpart.plot)
+library(gbm)
+library(ggplot2)
+library(randomForest)
+library(party)
+library(e1071)
+library(vip)
+```
+
+```{r}
+#Load datasets
+ds1 <- read.csv("dataset1_2.csv")
+ds2 <- read.csv("dataobserved_2.csv")
+
+#Rename columns and remove unused row for dataset 1
+colnames(ds1)[1] <- "ID"
+colnames(ds1)[2] <- "Treatment"
+colnames(ds1)[3] <- "Age"
+
+#Rename columns for data set 2
+colnames(ds2)[1] <- "ID"
+colnames(ds2)[2] <- "Weight Change"
+colnames(ds2)[3] <- "Visit Number"
+```
+
+```{r}
+#Merge data set 1 and 2 on ID column. 
+#Data includees 5 columns (ID(Unique Identifier), Weight Change, Visit Number, Treated (1 = Treated, 0 = Not Treated), Age)
+wl <- merge(ds2, ds1, by.x = "ID", by.y = "ID")
+str(wl)
+```  
+
+```{r}
+#Change data type to best fit model
+wl$Age <- as.integer(wl$Age)
+wl$Treatment <- as.factor(wl$Treatment)
+
+#Correlation check
+#No correlation between Weight Change and the number of visits. 
+corwl <- wl[,-4]
+wl_mat <- cor(corwl)
+corrplot(wl_mat, method = "number")
+```
+
+```{r}
+#Normally distribution
+hist(wl$`Weight Change`)
+```
+
+
+```{r}
+#  Hypothesis testing
+#Use 2 different Stats test
+
+#t-Test 
+#Ho:Treatment has no impact on weight 
+#Ha: Treatment does have an impact on weight
+#p-value == 2.2e-16
+#Alpha is < 0.05 so we reject Ho
+t.test(wl$`Weight Change`~ wl$Treatment)
+```
+
+
+```{r}
+#Anova
+#Ho:Treatment has no impact on weight 
+#Ha: Treatment does have an impact on weight
+#p-value == <2e-16
+##Alpha is < 0.05 so we reject Ho
+aov_fit <- aov(wl$`Weight Change`~wl$Treatment + wl$`Visit Number`+ wl$Age,data = wl)
+summary(aov_fit)
+```
+
+```{r}
+#Subset data into train and test set for ML model
+set.seed(123)
+sample <- sample.split(wl, SplitRatio = .70)
+train <- subset(wl, sample == TRUE)
+test <- subset(wl, sample == FALSE)
+
+#Regression Tree model
+wl_dc <- rpart(`Weight Change`~ Age + `Visit Number` + Treatment ,data = train, method = "anova")
+#Treatment is the most important variable
+rpart.plot(wl_dc)
+#Actual weight loss vs predicted predicted
+predicted_wl <- predict(wl_dc, test, method = "anova")
+dc_df <- cbind(test, predicted_wl)
+#Predited weight values 
+#From or results we can infer that out model predicted weight loss with good accuracy. 
+#Our model proved that if a patient received treatment they were more likely to lose weight on the other hand 
+#if a patient did not receive treatment they were less likely to lose weight and in many cases gained weight.
+```
+
+```{r}
+#Feature importance 
+#Determine which variable was most important
+vip_fit <- vip(wl_dc, num_features = 3, bar = FALSE)
+print(vip_fit)
+```
+
+```{r}
+#Subset original data frame into 5 smaller data frames based on visit number.
+visit_1 <- wl[wl$`Visit Number` == 1,]      
+visit_2 <- wl[wl$`Visit Number` == 2,]      
+visit_3 <- wl[wl$`Visit Number` == 3,]      
+visit_4 <- wl[wl$`Visit Number` == 4,]  
+visit_5 <- wl[wl$`Visit Number` == 5,]
+```
+
+```{r}
+#Visit 1 weight 
+ggplot(data = v1, aes(x = `Weight Change`, y = Age)) +
+geom_point(aes(color = Treatment), shape = 1, alpha = 1, size = 2) + 
+labs(title="Weight Loss Based on Treatment or No Treatment", y="Age", x="Weight Loss") +
+scale_color_discrete(name="Treatment",
+                    breaks=c("0", "1"),
+                    labels=c("0 = Not Treated", "1 = Treated "))
+```
+
+```{r}
+#Visit 2 weight 
+ggplot(data = v2, aes(x = `Weight Change`, y = Age)) +
+geom_point(aes(color = Treatment), shape = 1, alpha = 1, size = 2) +
+labs(title="Weight Loss Based on Treatment or No Treatment", y="Age", x="Weight Loss") +
+scale_color_discrete(name="Treatment",
+                    breaks=c("0", "1"),
+                    labels=c("0 = Not Treated", "1 = Treated "))
+```
+
+```{r}
+#Visit 3 weight 
+ggplot(data = v3, aes(x = `Weight Change`, y = Age)) +
+geom_point(aes(color = Treatment), shape = 1, alpha = 1, size = 2) +
+labs(title="Weight Loss Based on Treatment or No Treatment", y="Age", x="Weight Loss") +
+scale_color_discrete(name="Treatment",
+                    breaks=c("0", "1"),
+                    labels=c("0 = Not Treated", "1 = Treated "))
+```
+
+```{r}
+#Visit 4 weight 
+ggplot(data = v4, aes(x = `Weight Change`, y = Age)) +
+geom_point(aes(color = Treatment), shape = 1, alpha = 1, size = 2) +
+labs(title="Weight Loss Based on Treatment or No Treatment", y="Age", x="Weight Loss") +
+scale_color_discrete(name="Treatment",
+                    breaks=c("0", "1"),
+                    labels=c("0 = Not Treated", "1 = Treated"))
+```
+
+```{r}
+#Visit 5 weight 
+ggplot(data = v5, aes(x = `Weight Change`, y = Age)) +
+geom_point(aes(color = Treatment), shape = 1, alpha = 1, size = 2) +
+labs(title="Weight Loss Based on Treatment or No Treatment", y="Age", x="Weight Loss") +
+scale_color_discrete(name="Treatment",
+                    breaks=c("0", "1"),
+                    labels=c("0 = Not Treated", "1 = Treated "))
+```
+
+#Regression tree analysis was chosen because it is a reliable method of identifying which variables have impact on a topic of #interest which in this case was the change in weight. The process of performing a regression allows you to confidently #determine which factors matter most, which factors can be ignored, and how these factors influence each other. 
+
+#Prior to building our model we check for correlation with all the variables. Unfortunately, there was no correlation. After #model building we determined there is more so causation than correlation. 
+
+#Statistical testing was performed using a t-test and a two-way Anova. In both cases we were able to reject the null hypothesis #and accept the alternative which was our original assumption that treatment led to weight loss. 
+
+#There is definitely a treatment effect on weight over time. As displayed by the above visualizations. After building our model #we wanted further proof that treatment over time affected weight. We divided our data set into patient visits (1-5) to track #patient weight loss or patient weight gained over time. Our visuals provide further evidence that patients who received treatment saw a significant difference in weight loss over the 5 visits.
