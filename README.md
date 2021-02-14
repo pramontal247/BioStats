@@ -8,7 +8,8 @@ t-Test was performed to determine if there is a statistical difference in patien
 
 
 
-#Visit 1 - Patient Weight Distribution
+
+# Visit 1 - Patient Weight Distribution
 
 ![alt text](https://github.com/pramontal247/BioStats/blob/main/image1.png)
 
@@ -16,6 +17,6 @@ t-Test was performed to determine if there is a statistical difference in patien
 
 
 
-#Visit 5 - Patient Weight Distribution
+# Visit 5 - Patient Weight Distribution
 
 ![alt text](https://github.com/pramontal247/BioStats/blob/main/image3.png)
