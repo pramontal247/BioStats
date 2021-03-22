@@ -4,7 +4,7 @@ Will patients who get treatment lose more weight over time than patients who do 
 
 # t-Test Results
 
-t-Test was performed to determine if there is a statistical difference in the mean weight of patients who received treatment and those who did not. t-Tets results gave a p-value of 2.2e-16 well below the 0.05 threshold essentially confirming the original assumption that patients who were treated were more likely to lose more weight than patients who were not treated. 
+t-Test was performed to determine if there is a statistical difference in the mean weight of patients who received treatment and patients who did not. t-Tets results gave a p-value of 2.2e-16 well below the 0.05 threshold essentially confirming the original assumption that patients who were treated were more likely to lose more weight than patients who were not treated. 
 
 
 
